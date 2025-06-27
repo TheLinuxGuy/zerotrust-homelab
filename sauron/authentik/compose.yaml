@@ -16,8 +16,7 @@ services:
       POSTGRES_PASSWORD: ${PG_PASS:?database password required}
       POSTGRES_USER: ${PG_USER:-authentik}
       POSTGRES_DB: ${PG_DB:-authentik}
-    env_file:
-      - compose.env
+
   redis:
     image: docker.io/library/redis:alpine
     command: --save 60 1 --loglevel warning
@@ -30,6 +29,7 @@ services:
       timeout: 3s
     volumes:
       - redis:/data
+
   server:
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.6.2}
     restart: unless-stopped
@@ -54,6 +54,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+
   worker:
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.6.2}
     restart: unless-stopped
@@ -74,11 +75,9 @@ services:
     user: root
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /mnt/dietpi_userdata/compose/authentik/media:/media
-      - /mnt/dietpi_userdata/compose/authentik/certs:/certs
-      - /mnt/dietpi_userdata/compose/authentik/custom-templates:/templates
-    env_file:
-      - compose.env
+      - /mnt/dietpi_userdata/authentik/media:/media
+      - /mnt/dietpi_userdata/authentik/certs:/certs
+      - /mnt/dietpi_userdata/authentik/custom-templates:/templates
     depends_on:
       postgresql:
         condition: service_healthy
@@ -92,11 +91,11 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /mnt/dietpi_userdata/compose/authentik/postgres-data
+      device: /mnt/dietpi_userdata/authentik/postgres-data
   # Redis
   redis:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /mnt/dietpi_userdata/compose/authentik/redis
+      device: /mnt/dietpi_userdata/authentik/redis
