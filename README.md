@@ -13,3 +13,8 @@ Software stack (all docker):
 1. [Komodo](https://komo.do/docs/intro)
 2. [Uptime Kuma](https://github.com/louislam/uptime-kuma) (ping monitoring, etc)
 3. [Beszel](https://github.com/henrygd/beszel) 
+
+
+##### Komodo setup notes
+
+1. Make sure git is installed `apt-get install git` this is needed to sync with github repos.
