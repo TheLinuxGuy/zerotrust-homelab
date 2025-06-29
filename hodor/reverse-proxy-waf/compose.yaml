@@ -13,7 +13,6 @@ services:
 #      - "shm-volume:/dev/shm/check-point" # required if you want to use the openappsec attachment module, also enable this volume at the end of this compose.yaml
     environment:
       - "TZ=America/New_York" # set timezone, required, set it to one of the values from the "TZ identifier" https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List
-      - "ACME_EMAIL=your-email" # email address which should be used for acme, currently optional, may be required in the future, so I recommend you to enter your email here, optional for letsencrypt, but required for zerossl and google public ca
 #      - "ACME_SERVER=https://dv.acme-v02.api.pki.goog/directory (google public ca) / https://acme.zerossl.com/v2/DV90 (zerossl)" # acme server used when requesting/renewing certs using certbot, default is set to: https://acme-v02.api.letsencrypt.org/directory (letsencrypt)
 #      - "ACME_EAB_KID=123456789abcdef" # Key Identifier for External Account Binding for the acme server, not supported by letsencrypt, optional for zerossl (Login on theier site => Developer), but required for google public ca: https://cloud.google.com/certificate-manager/docs/public-ca-tutorial?hl=de#request-key-hmac
 #      - "ACME_EAB_HMAC_KEY=123456789abcdef" # HMAC key for External Account Binding for the acme server, not supported by letsencrypt, optional for zerossl (Login on theier site => Developer), but required for google public ca: https://cloud.google.com/certificate-manager/docs/public-ca-tutorial?hl=de#request-key-hmac
@@ -40,7 +39,7 @@ services:
 #      - "HTTP_PORT=8080" # tcp port to use for http traffic, changing this may breaks certbot http challenge, default 80
 #      - "HTTPS_PORT=8443" # udp and tcp port to use for https traffic, changing this may breaks certbot http challenge, default 443
 #      - "HTTP3_ALT_SVC_PORT=8443" # please change this if the udp port the clients connect to is not 443, default 443
-#      - "DISABLE_HTTP=true" # disables nginx to listen on port 80, default false
+     - "DISABLE_HTTP=true" # disables nginx to listen on port 80, default false
 #      - "LISTEN_PROXY_PROTOCOL=true" # should listeners of http(s) hosts (proxy/redirect/dead and default) use proxy protocol instead of http(s)? default false, overrides DISABLE_H3_QUIC to true
 #      - "DISABLE_H3_QUIC=true" # disables nginx to listen on port 443 udp for default host and all your hosts, this will fully disable HTTP/3 and QUIC, even if you enable it inside the UI, not recommended, default false
 #      - "NGINX_QUIC_BPF=true" # enables nginxs quic_bpf (https://nginx.org/en/docs/http/ngx_http_v3_module.html#quic_bpf), you also need to to give the NPMplus container privileged permissions to use this, default false
@@ -54,11 +53,11 @@ services:
 #      - "DISABLE_NGINX_BEAUTIFIER=true" # disables nginxbeautifier, useful when it fails parsing non-standard configs, default false
 #      - "FULLCLEAN=true" # Clean unused config folders, default false
 #      - "SKIP_IP_RANGES=true" # Skip feteching/whitelisting ip ranges from cloudflare, default false
-#      - "LOGROTATE=true" # Enables writing http access logs to /opt/npmplus/nginx/access.log, stream access logs to /opt/npmplus/nginx/stream.log and enables daily logrotation, default false
-#      - "LOGROTATIONS=7" # Set how often the access.log should be rotated until it is deleted, default 3
+     - "LOGROTATE=true" # Enables writing http access logs to /opt/npmplus/nginx/access.log, stream access logs to /opt/npmplus/nginx/stream.log and enables daily logrotation, default false
+     - "LOGROTATIONS=7" # Set how often the access.log should be rotated until it is deleted, default 3
 #      - "CRT=36" # Set how many hours should be between certbot trying to renew your certs, default 24
 #      - "IPRT=3" # Set how many hours should be between updating ip ranges from aws and cloudflare, default 1, ignored when SKIP_IP_RANGES is true
-#      - "GOA=true" # Enables goaccess (and overrides LOGROTATE it to true), default false --- if you download the GeoLite2-Country.mmdb, GeoLite2-City.mmdb AND GeoLite2-ASN.mmdb file from MaxMind and place them in /opt/npmplus/goaccess/geoip it will automatically enable GeoIP in goaccess after restarting NPMplus (no need to change GOACLA below), you may also enable the geoipupdate container below (please change the timezone)
+     - "GOA=true" # Enables goaccess (and overrides LOGROTATE it to true), default false --- if you download the GeoLite2-Country.mmdb, GeoLite2-City.mmdb AND GeoLite2-ASN.mmdb file from MaxMind and place them in /opt/npmplus/goaccess/geoip it will automatically enable GeoIP in goaccess after restarting NPMplus (no need to change GOACLA below), you may also enable the geoipupdate container below (please change the timezone)
 #      - "GOACLA=--agent-list --real-os --double-decode --anonymize-ip --anonymize-level=2 --keep-last=7 --with-output-resolver --no-query-string" # Arguments that should be passed to goaccess, default: --agent-list --real-os --double-decode --anonymize-ip --anonymize-level=1 --keep-last=30 --with-output-resolver --no-query-string
 #      - "PHP82=true" # Activate PHP82, default false, supported, but not recommended, you should prefer to use a dedicated php-fpm container
 #      - "PHP82_APKS=php82-curl php82-openssl" # Add php extensions, also enables PHP82, see available packages here: https://pkgs.alpinelinux.org/packages?branch=v3.21&repo=community&arch=x86_64&name=php82-*, default none, requires PHP82
@@ -67,8 +66,6 @@ services:
 #      - "PHP84=true" # Activate PHP84, default false, supported, but not recommended, you should prefer to use a dedicated php-fpm container
 #      - "PHP84_APKS=php84-curl php84-openssl" # Add php extensions, also enables PHP84, see available packages here: https://pkgs.alpinelinux.org/packages?branch=v3.21&repo=community&arch=x86_64&name=php84-*, default none, requires PHP84
 #      - "PHP_APKS=php-pecl-apcu php-pecl-redis" # Add php extensions, see available packages here: https://pkgs.alpinelinux.org/packages?branch=v3.21&repo=community&arch=x86_64&name=php-*, default none, requires PHP82, PHP83 and/or PHP84, not recommended, please use PHP82_APKS, PHP83_APKS or PHP84_APKS
-#      - "INITIAL_ADMIN_EMAIL=<initial@email.tld>" # email to use instead of admin@example.org on first start of NPMplus for the initial user
-#      - "INITIAL_ADMIN_PASSWORD=<initial-password>" # password to use instead of a random password which is logged on first start of NPMplus for the initial user
 #      - "INITIAL_DEFAULT_PAGE=444" # default page to set on first start of NPMplus for the initial user, default congratulations, can be one of: 404, 444, redirect, congratulations or html
 #      - "ENABLE_PRERUN=true" # see readme, default off
 #      - "NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE=true" # loads the openappsec attachment module, you also need to set ipc and enable the shm-volume for NPMplus in this composse file, this will fully disable brotli, default false
@@ -97,19 +94,17 @@ services:
 #      - "/opt/openappsec/logs:/opt/openappsec/logs:ro" # only uncomment if you also use the openappsec-agent container
 
 # This can be used with GOA=true, to keep the geopip database updated, you need to change the envs to make it work
-#  geoipupdate:
-#    container_name: npmplus-geoipupdate
-#    image: docker.io/maxmindinc/geoipupdate:latest
-#    restart: always
-#    network_mode: bridge
-#    environment:
-#      - "TZ=America/New_York" # needs to be changed
-#      - "GEOIPUPDATE_EDITION_IDS=GeoLite2-Country GeoLite2-City GeoLite2-ASN"
-#      - "GEOIPUPDATE_ACCOUNT_ID=<your-account-id>" # needs to be changed
-#      - "GEOIPUPDATE_LICENSE_KEY=<your-license-key>" # needs to be changed
-#      - "GEOIPUPDATE_FREQUENCY=24"
-#    volumes:
-#      - "/opt/npmplus/goaccess/geoip:/usr/share/GeoIP"
+ geoipupdate:
+   container_name: npmplus-geoipupdate
+   image: docker.io/maxmindinc/geoipupdate:latest
+   restart: always
+   network_mode: bridge
+   environment:
+     - "TZ=America/New_York" # needs to be changed
+     - "GEOIPUPDATE_EDITION_IDS=GeoLite2-Country GeoLite2-City GeoLite2-ASN"
+     - "GEOIPUPDATE_FREQUENCY=24"
+   volumes:
+     - "/opt/npmplus/goaccess/geoip:/usr/share/GeoIP"
 
 # This can be used to run openappsec, you also need to set NGINX_LOAD_OPENAPPSEC_ATTACHMENT_MODULE to true and set ipc for NPMplus
 #  openappsec-agent:
