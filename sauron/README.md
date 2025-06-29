@@ -33,3 +33,6 @@ Had to install some additional software below.
 - `systemctl start dbus`
 - `systemctl enable systemd-resolved.service --now`
 
+#### SSH NAT timeout issues (due to Azure NAT)
+
+Modify `/etc/ssh/sshd_config` on dietpi
