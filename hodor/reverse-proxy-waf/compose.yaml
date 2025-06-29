@@ -11,6 +11,7 @@ services:
 #      - "/var/www:/var/www" # optional, if you want to use NPMplus directly as webserver for html/php
 #      - "/path/to/old/npm/letsencrypt/folder:/etc/letsencrypt" # Only needed for first time migration from original nginx-proxy-manager to this fork, remove after migration
 #      - "shm-volume:/dev/shm/check-point" # required if you want to use the openappsec attachment module, also enable this volume at the end of this compose.yaml
+    env_file: .env # Read my komodo secrets
     environment:
       - "TZ=America/New_York" # set timezone, required, set it to one of the values from the "TZ identifier" https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List
       - "DISABLE_HTTP=true" # disables nginx to listen on port 80, default false
@@ -42,6 +43,7 @@ services:
     image: docker.io/maxmindinc/geoipupdate:latest
     restart: always
     network_mode: bridge
+    env_file: .env # Read my komodo secrets
     environment:
       - "TZ=America/New_York" # needs to be changed
       - "GEOIPUPDATE_EDITION_IDS=GeoLite2-Country GeoLite2-City GeoLite2-ASN"
