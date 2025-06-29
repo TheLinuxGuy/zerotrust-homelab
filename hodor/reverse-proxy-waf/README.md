@@ -15,3 +15,6 @@ This repository will save a `snapshot` of the compose.yaml that was used during 
 
 **Komodo will save our secrets and environment variables** and pass them directly when starting the stack. The compose.yaml synced by komodo won't contain any of the secrets that are managed in komodo and this intentional and by design. 
 * Harmless enviroment variables (non-secrets) will be synced to this public repository by komodo.
+
+
+`mkdir -p /opt/npmplus/ /opt/npmplus/goaccess/geoip`
