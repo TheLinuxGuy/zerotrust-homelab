@@ -18,6 +18,8 @@ services:
       - "LOGROTATE=true" # Enables writing http access logs to /opt/npmplus/nginx/access.log, stream access logs to /opt/npmplus/nginx/stream.log and enables daily logrotation, default false
       - "LOGROTATIONS=7" # Set how often the access.log should be rotated until it is deleted, default 3
       - "GOA=true" # Enables goaccess (and overrides LOGROTATE it to true), default false --- if you download the GeoLite2-Country.mmdb, GeoLite2-City.mmdb AND GeoLite2-ASN.mmdb file from MaxMind and place them in /opt/npmplus/goaccess/geoip it will automatically enable GeoIP in goaccess after restarting NPMplus (no need to change GOACLA below), you may also enable the geoipupdate container below (please change the timezone)
+      - "NGINX_WORKER_PROCESSES=8" # value of worker_processes, default and recommended: auto
+      - "NGINX_WORKER_CONNECTIONS=1024" # value of worker_connections, default: 512
 
 # This can be used to enable crowdsec, see README for a guide
 #  crowdsec:
