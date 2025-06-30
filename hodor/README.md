@@ -62,9 +62,13 @@ sudo ufw allow out on wt0 from any to any
 sudo ufw allow in on eth0 from X to any
 sudo ufw allow in on eth0 from Y::48 to any
 
-# 6. Enable UFW (your existing SSH session will remain active)
+# 6. Allow reverse proxy ports to the public.
+sudo ufw allow in on eth0 to any port 80 proto tcp
+sudo ufw allow in on eth0 to any port 443 proto tcp
+
+# 7. Enable UFW (your existing SSH session will remain active)
 sudo ufw enable
 
-# 7. Verify rules and status
+# 8. Verify rules and status
 sudo ufw status verbose
 ```
