@@ -28,8 +28,9 @@ location / {
     # Put your proxy_pass to your application here
     proxy_pass          http://nexus.in.mesh:8080;
     # Set any other headers your application might need
-    # proxy_set_header Host $host;
-    # proxy_set_header ...
+    # Preserve original client IP
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Real-IP       $remote_addr;
 
     ##############################
     # authentik-specific config
