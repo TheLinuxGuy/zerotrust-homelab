@@ -2,3 +2,67 @@
 /sauron/**/*.env
 .ansible/.lock
 .DS_Store
+
+# Terraform stuff
+# Local Terraform directories
+.terraform/
+
+# Terraform state files
+*.tfstate
+*.tfstate.*
+
+# Backup state files
+*.tfstate.backup
+
+# Crash log, useful for debugging but not for VCS
+crash.log
+
+# Exclude override files, which are local customizations
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Exclude CLI auto-completion files
+.terraformrc
+terraform.rc
+
+# Exclude variable definitions that contain secrets
+*.tfvars
+*.tfvars.json
+
+# Exclude plan output files
+*.tfplan
+
+# Ansible
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Ansible retry files
+*.retry
+
+# Ansible facts cache (if enabled)
+.fact_cache/
+.fact_cache.*
+
+# Ansible callback plugin logs
+ansible.log
+
+# SSH keypairs and vault password files
+*.pem
+*.key
+vault_pass.txt
+vault_password.*
+
+# Local inventory and host_vars overrides
+inventory_local.yml
+host_vars_local/
+group_vars_local/
+
+# Ansible Galaxy collections and roles cache
+~/.ansible/collections/
+~/.ansible/roles/
+
+# Ansible build output (e.g., ansible-builder)
+build/
