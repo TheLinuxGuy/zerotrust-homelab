@@ -1,0 +1,95 @@
+---
+- name: Install and configure netbird.io VPN
+  hosts: all
+  become: true
+  vars:
+    netbird_setup_key: "{{ lookup('env', 'NETBIRD_SETUP_KEY') }}"
+  tasks:
+    - name: Detect package manager
+      ansible.builtin.set_fact:
+        package_manager: "{{ 'apt' if ansible_facts.os_family == 'Debian' else 'dnf' if ansible_facts.os_family == 'RedHat' else 'unknown' }}"
+
+    - name: Fail if unsupported OS
+      ansible.builtin.fail:
+        msg: "Unsupported OS family: {{ ansible_facts.os_family }}"
+      when: package_manager == 'unknown'
+
+    - name: Install netbird on apt-based systems
+      when: package_manager == 'apt'
+      block:
+        - name: Download and add netbird GPG key
+          ansible.builtin.get_url:
+            url: https://pkgs.netbird.io/debian/public.key
+            dest: /tmp/netbird-key.gpg
+            mode: '0644'
+
+        - name: Dearmor GPG key
+          ansible.builtin.command: gpg --dearmor -o /usr/share/keyrings/netbird-archive-keyring.gpg /tmp/netbird-key.gpg
+          args:
+            creates: /usr/share/keyrings/netbird-archive-keyring.gpg
+
+        - name: Add netbird repository
+          ansible.builtin.apt_repository:
+            repo: "deb [signed-by=/usr/share/keyrings/netbird-archive-keyring.gpg] https://pkgs.netbird.io/debian stable main"
+            state: present
+            filename: netbird
+
+        - name: Update apt cache
+          ansible.builtin.apt:
+            update_cache: true
+
+        - name: Install netbird
+          ansible.builtin.apt:
+            name: netbird
+            state: present
+
+    - name: Install netbird on dnf-based systems
+      when: package_manager == 'dnf'
+      block:
+        - name: Import netbird GPG key
+          ansible.builtin.command: rpm --import https://pkgs.netbird.io/yum/public.key
+          args:
+            creates: /etc/pki/rpm-gpg/RPM-GPG-KEY-netbird
+
+        - name: Add netbird repository
+          ansible.builtin.yum_repository:
+            name: netbird
+            description: Netbird repository
+            baseurl: https://pkgs.netbird.io/yum/
+            gpgcheck: true
+            gpgkey: https://pkgs.netbird.io/yum/public.key
+            enabled: true
+
+        - name: Install netbird
+          ansible.builtin.dnf:
+            name: netbird
+            state: present
+
+    - name: Join netbird network with setup key
+      ansible.builtin.command: netbird join --setup-key {{ netbird_setup_key }}
+      register: join_result
+      changed_when: "'Successfully joined' in join_result.stdout"
+
+    - name: Enable and start netbird service
+      ansible.builtin.systemd:
+        name: netbird
+        enabled: true
+        state: started
+
+    - name: Re-gather facts to include netbird interface
+      ansible.builtin.setup:
+        gather_subset:
+          - network
+
+    - name: Find netbird interface
+      ansible.builtin.set_fact:
+        netbird_interface: "{{ ansible_facts.interfaces | select('match', '^wt.*') | first | default('') }}"
+
+    - name: Get netbird interface IP
+      ansible.builtin.set_fact:
+        netbird_ip: "{{ ansible_facts[netbird_interface]['ipv4']['address'] | default('No IP found') }}"
+      when: netbird_interface != ''
+
+    - name: Output netbird interface IP
+      ansible.builtin.debug:
+        msg: "Netbird VPN interface IP: {{ netbird_ip }}"

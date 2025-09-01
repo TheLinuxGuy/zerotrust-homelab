@@ -1,2 +1,4 @@
 # Ignore all .env files under sauron/ and its subfolders
 /sauron/**/*.env
+.ansible/.lock
+.DS_Store

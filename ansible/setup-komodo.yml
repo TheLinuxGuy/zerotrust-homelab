@@ -1,0 +1,27 @@
+---
+- name: Manage Komodo Periphery Service
+  hosts: all
+  become: true
+  gather_facts: true
+  
+  roles:
+    - role: bpbradley.komodo
+      vars:
+        # Required variables
+        komodo_action: "install"
+        komodo_version: "v1.18.4"  # or "latest" for automatic versioning
+        
+        # Security configuration
+        passkey: "{{ lookup('env', 'KOMODO_PASSKEY') }}"  # Consider using ansible-vault for this
+        #komodo_allowed_ips:
+        #  - "127.0.0.1"  # IP of your Komodo Core instance
+        
+        # Optional: Set bind IP for IPv6 support (komodo v1.17.1+)
+        # komodo_bind_ip: "[:::]"  # Default for IPv6
+        # komodo_bind_ip: "0.0.0.0"  # For legacy IPv4 behavior
+        
+        # Optional: Override default configuration if needed
+        # komodo_delete_user: false  # Only used for uninstall action
+        # komodo_core_url:
+        # komodo_core_api_key
+        # komodo_core_api_secret
