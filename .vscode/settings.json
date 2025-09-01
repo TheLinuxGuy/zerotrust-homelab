@@ -1,5 +1,8 @@
 {
     "python-envs.defaultEnvManager": "ms-python.python:system",
     "python-envs.pythonProjects": [],
-    "ansible.python.interpreterPath": "/opt/homebrew/bin/python3"
+    "ansible.python.interpreterPath": "/opt/homebrew/bin/python3",
+    "yaml.schemas": {
+        "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/requirements.json": "file:///Users/gfm/Library/CloudStorage/SynologyDrive-home/GitHub/zerotrust-homelab/ansible/roles/requirements.yml"
+    }
 }
