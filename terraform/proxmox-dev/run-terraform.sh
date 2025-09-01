@@ -39,7 +39,30 @@ if [ -z "$proxmox_endpoint" ]; then
 fi
 
 echo "✅ Environment variables loaded successfully"
-echo "🚀 Running: terraform $@"
 
-# Run terraform with all passed arguments
-terraform "$@"
+# Build terraform command with subcommand first, then -var flags
+SUBCOMMAND="$1"
+shift  # Remove the subcommand from arguments
+
+TERRAFORM_CMD="terraform $SUBCOMMAND"
+
+# Add -var flags for sensitive variables if they exist
+if [ -n "$proxmox_endpoint" ]; then
+    TERRAFORM_CMD="$TERRAFORM_CMD -var=\"proxmox_endpoint=$proxmox_endpoint\""
+fi
+
+if [ -n "$proxmox_api_token_id" ]; then
+    TERRAFORM_CMD="$TERRAFORM_CMD -var=\"proxmox_api_token_id=$proxmox_api_token_id\""
+fi
+
+if [ -n "$proxmox_api_token_secret" ]; then
+    TERRAFORM_CMD="$TERRAFORM_CMD -var=\"proxmox_api_token_secret=$proxmox_api_token_secret\""
+fi
+
+# Add the remaining arguments
+TERRAFORM_CMD="$TERRAFORM_CMD $@"
+
+echo "🚀 Running: $TERRAFORM_CMD"
+
+# Run terraform with the constructed command
+eval "$TERRAFORM_CMD"

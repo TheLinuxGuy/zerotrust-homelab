@@ -1,0 +1,199 @@
+---
+- name: Initial system setup
+  hosts: all
+  gather_facts: true
+  vars:
+    new_user: "{{ lookup('env', 'SYSTEM_USER') }}"
+    user_sshkey: "{{ lookup('env', 'USER_SSHKEY') }}"
+    user_password: "{{ lookup('env', 'USER_PASSWORD') }}"
+    system_tz: "{{ lookup('env', 'SYSTEM_TZ') }}"
+    system_sshkey: "{{ lookup('env', 'SYSTEM_SSHKEY') }}"
+    semaphore_sshkey: "{{ lookup('env', 'SEMAPHORE_SSHKEY') }}"
+  tasks:
+    - name: Print system information
+      ansible.builtin.debug:
+        msg:
+          - "Hostname         : {{ ansible_fqdn | default(inventory_hostname) }}"
+          - "Timezone         : {{ ansible_date_time.tz }}"
+          - "IPv4 Address     : {{ ansible_default_ipv4.address | default('none') }}"
+          - "IPv6 Addresses   : {{ ansible_all_ipv6_addresses | join(', ') | default('none') }}"
+          - "Default Gateway  : {{ ansible_default_ipv4.gateway | default('none') }}"
+          - "DNS Resolvers    : {{ ansible_dns.nameservers | join(', ') | default('none') }}"
+
+    - name: Install essential packages (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name:
+          - htop
+          - btop
+          - iftop
+          - nmap
+          - lsof
+          - git
+          - sudo
+          - fail2ban
+        state: present
+        update_cache: true
+      when: ansible_facts['os_family'] == 'Debian'
+
+    - name: Install essential packages (RedHat/CentOS)
+      ansible.builtin.yum:
+        name:
+          - htop
+          - btop
+          - iftop
+          - nmap
+          - lsof
+          - git
+          - sudo
+          - fail2ban
+        state: present
+      when: ansible_facts['os_family'] == 'RedHat'
+
+    - name: Ensure fail2ban configuration is present (Debian/Ubuntu)
+      ansible.builtin.copy:
+        dest: /etc/fail2ban/jail.local
+        content: |
+          [DEFAULT]
+          bantime = 259200
+          findtime = 3600
+          maxretry = 3
+          ignoreip = 127.0.0.1/8 ::1 192.168.10.0/24 192.168.250.0/25
+          backend = systemd
+
+          [sshd]
+          enabled = true
+          port    = ssh
+          logpath = %(sshd_log)s
+
+          [recidive]
+          enabled = true
+          logpath = /var/log/fail2ban.log
+          bantime = 15552000
+          findtime = 86400
+          maxretry = 5
+        owner: root
+        group: root
+        mode: '0644'
+      when: ansible_facts['os_family'] == 'Debian'
+      notify: Restart fail2ban
+
+    - name: Ensure fail2ban configuration is present (RedHat/CentOS)
+      ansible.builtin.copy:
+        dest: /etc/fail2ban/jail.local
+        content: |
+          [DEFAULT]
+          bantime = 259200
+          findtime = 3600
+          maxretry = 3
+          ignoreip = 127.0.0.1/8 ::1 192.168.10.0/24 192.168.250.0/25
+          backend = systemd
+
+          [sshd]
+          enabled = true
+          port    = ssh
+          logpath = %(sshd_log)s
+
+          [recidive]
+          enabled = true
+          logpath = /var/log/fail2ban.log
+          bantime = 15552000
+          findtime = 86400
+          maxretry = 5
+        owner: root
+        group: root
+        mode: '0644'
+      when: ansible_facts['os_family'] == 'RedHat'
+      notify: Restart fail2ban
+
+    - name: Ensure fail2ban is enabled and started
+      ansible.builtin.service:
+        name: fail2ban
+        state: started
+        enabled: true
+
+    - name: Ensure new user exists
+      ansible.builtin.user:
+        name: "{{ new_user }}"
+        shell: /bin/bash
+        groups: sudo
+        append: true
+        state: present
+        password: "{{ user_password | password_hash('sha512') }}"
+
+    - name: Add SSH key for new user
+      ansible.builtin.authorized_key:
+        user: "{{ new_user }}"
+        key: "{{ user_sshkey }}"
+        state: present
+
+    - name: Set system timezone
+      ansible.builtin.timezone:
+        name: "{{ system_tz }}"
+
+    - name: Add SYSTEM_SSHKEY for root
+      ansible.builtin.authorized_key:
+        user: root
+        key: "{{ system_sshkey }}"
+        state: present
+
+    - name: Add SEMAPHORE_SSHKEY for root
+      ansible.builtin.authorized_key:
+        user: root
+        key: "{{ semaphore_sshkey }}"
+        state: present
+
+    - name: Disable root password login except for {{ new_user }}
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PermitRootLogin'
+        line: 'PermitRootLogin prohibit-password'
+        state: present
+        create: yes
+      notify: Restart sshd
+
+    - name: Ensure PasswordAuthentication is globally disabled
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+        state: present
+        create: yes
+      notify: Restart sshd
+
+    - name: Ensure PubkeyAuthentication is globally enabled
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PubkeyAuthentication'
+        line: 'PubkeyAuthentication yes'
+        state: present
+        create: yes
+      notify: Restart sshd
+
+    - name: Allow password authentication for {{ new_user }} only
+      ansible.builtin.blockinfile:
+        path: /etc/ssh/sshd_config
+        marker: "# {mark} ANSIBLE MANAGED BLOCK for {{ new_user }} password auth"
+        block: |
+          Match User {{ new_user }}
+            PasswordAuthentication yes
+      notify: Restart sshd
+
+    - name: Allow passwordless sudo for new user
+      ansible.builtin.copy:
+        dest: "/etc/sudoers.d/{{ new_user }}"
+        content: "{{ new_user }} ALL=(ALL) NOPASSWD:ALL\n"
+        owner: root
+        group: root
+        mode: '0440'
+      tags: passwordless_sudo
+
+  handlers:
+    - name: Restart sshd
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
+
+    - name: Restart fail2ban
+      ansible.builtin.service:
+        name: fail2ban
+        state: restarted

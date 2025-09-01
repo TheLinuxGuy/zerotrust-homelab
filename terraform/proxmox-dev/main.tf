@@ -79,3 +79,38 @@ resource "proxmox_virtual_environment_container" "ubuntu_containers" {
   # Tags
   tags = ["terraform", "lxc", "ubuntu"]
 }
+
+# Display passwords during apply using terraform output
+resource "null_resource" "display_passwords" {
+  depends_on = [
+    random_password.container_passwords,
+    proxmox_virtual_environment_container.ubuntu_containers
+  ]
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      echo ""
+      echo "🔐 GENERATED CONTAINER PASSWORDS:"
+      echo "=================================="
+      terraform output -json container_credentials | jq -r '.[] | "\(.hostname) (VM ID: \(.vm_id)): \(.password)"'
+      echo ""
+      echo "💡 SSH Access:"
+      echo "=============="
+      echo "SSH Key: Already configured for root user"
+      echo "Password: Use generated passwords above for fallback"
+      echo ""
+      echo "📝 To view passwords later:"
+      echo "terraform output container_credentials"
+      echo ""
+    EOT
+
+    environment = {
+      TF_DATA_DIR = ".terraform"
+    }
+  }
+
+  # Trigger re-run when passwords change
+  triggers = {
+    passwords = join(",", random_password.container_passwords[*].result)
+  }
+}
