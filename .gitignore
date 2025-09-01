@@ -1,3 +1,8 @@
+# Ignore all .env files
+.env
+.env.*
+!.env.example
+
 # Ignore all .env files under sauron/ and its subfolders
 /sauron/**/*.env
 .ansible/.lock
@@ -28,8 +33,8 @@ override.tf.json
 terraform.rc
 
 # Exclude variable definitions that contain secrets
-*.tfvars
-*.tfvars.json
+# *.tfvars  # Temporarily commented out for Semaphore UI
+# *.tfvars.json
 
 # Exclude plan output files
 *.tfplan
