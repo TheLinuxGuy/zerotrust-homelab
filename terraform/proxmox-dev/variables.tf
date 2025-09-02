@@ -104,3 +104,21 @@ variable "password_override_special" {
   type        = string
   default     = "!@#$%^&*"
 }
+
+variable "ipv4_address" {
+  description = "Optional static IPv4 address with CIDR (leave empty for DHCP)"
+  type        = string
+  default     = ""
+}
+
+variable "ipv6_address" {
+  description = "Optional static IPv6 address with CIDR (leave empty for DHCP)"
+  type        = string
+  default     = ""
+}
+
+variable "vlan_tag" {
+  description = "Optional VLAN tag (leave null for no VLAN)"
+  type        = number
+  default     = null
+}

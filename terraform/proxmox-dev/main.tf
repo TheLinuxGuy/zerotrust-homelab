@@ -51,16 +51,26 @@ resource "proxmox_virtual_environment_container" "ubuntu_containers" {
     size         = var.container_disk_size
   }
 
-  # Network - All containers use vmbr0 for now
+  # Network - DHCP by default with optional static IP support
   # Note: SDN configuration requires manual setup in Proxmox or different provider version
+  # VLAN tagging (vlan_tag variable) requires SDN or tagged bridge configuration
   network_interface {
-    name    = "eth0"
-    bridge  = var.network_bridge
+    name   = "eth0"
+    bridge = var.network_bridge
   }
 
   # Initialization
   initialization {
     hostname = format("ubuntu-lxc-%02d", count.index + 1)
+
+    ip_config {
+      ipv4 {
+        address = var.ipv4_address != "" ? var.ipv4_address : "dhcp"
+      }
+      ipv6 {
+        address = var.ipv6_address != "" ? var.ipv6_address : "dhcp"
+      }
+    }
 
     user_account {
       password = random_password.container_passwords[count.index].result
