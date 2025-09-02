@@ -1,0 +1,3 @@
+# Experimental use Terraform to configure Proxmox
+
+NO CODE INSIDE THIS FOLDER SHOULD BE USED, IT IS CURRENTLY BEING DEBUGGED.

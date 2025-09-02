@@ -23,15 +23,6 @@ source .env
 set +a
 
 # Verify required variables are set
-if [ -z "$proxmox_api_token_secret" ]; then
-    echo "❌ Error: proxmox_api_token_secret not set in .env"
-    exit 1
-fi
-
-if [ -z "$proxmox_api_token_id" ]; then
-    echo "❌ Error: proxmox_api_token_id not set in .env"
-    exit 1
-fi
 
 if [ -z "$proxmox_endpoint" ]; then
     echo "❌ Error: proxmox_endpoint not set in .env"
@@ -66,13 +57,6 @@ if [ -n "$proxmox_endpoint" ]; then
     TERRAFORM_CMD="$TERRAFORM_CMD -var=\"proxmox_endpoint=$proxmox_endpoint\""
 fi
 
-if [ -n "$proxmox_api_token_id" ]; then
-    TERRAFORM_CMD="$TERRAFORM_CMD -var=\"proxmox_api_token_id=$proxmox_api_token_id\""
-fi
-
-if [ -n "$proxmox_api_token_secret" ]; then
-    TERRAFORM_CMD="$TERRAFORM_CMD -var=\"proxmox_api_token_secret=$proxmox_api_token_secret\""
-fi
 
 if [ -n "$acme_account_email" ]; then
     TERRAFORM_CMD="$TERRAFORM_CMD -var=\"acme_account_email=$acme_account_email\""

@@ -8,8 +8,9 @@ terraform {
 }
 
 provider "proxmox" {
-  endpoint = var.proxmox_endpoint
-  api_token = "${var.proxmox_api_token_id}=${var.proxmox_api_token_secret}"
+  alias     = "root"
+  endpoint  = var.proxmox_endpoint
+  username  = "root@pam"
+  password  = var.proxmox_root_password
   insecure  = true
 }
-
