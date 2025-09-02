@@ -163,3 +163,14 @@ variable "vlan_tag" {
   type        = number
   default     = null
 }
+
+variable "acme_account_email" {
+  description = "Email address for the ACME account"
+  type        = string
+}
+
+variable "cloudflare_api_token" {
+  description = "Cloudflare API token for ACME DNS challenge"
+  type        = string
+  sensitive   = true
+}

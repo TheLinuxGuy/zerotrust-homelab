@@ -38,6 +38,16 @@ if [ -z "$proxmox_endpoint" ]; then
     exit 1
 fi
 
+if [ -z "$acme_account_email" ]; then
+    echo "❌ Error: acme_account_email not set in .env"
+    exit 1
+fi
+
+if [ -z "$cloudflare_api_token" ]; then
+    echo "❌ Error: cloudflare_api_token not set in .env"
+    exit 1
+fi
+
 echo "✅ Environment variables loaded successfully"
 
 # Build terraform command with subcommand first, then -var flags
@@ -57,6 +67,14 @@ fi
 
 if [ -n "$proxmox_api_token_secret" ]; then
     TERRAFORM_CMD="$TERRAFORM_CMD -var=\"proxmox_api_token_secret=$proxmox_api_token_secret\""
+fi
+
+if [ -n "$acme_account_email" ]; then
+    TERRAFORM_CMD="$TERRAFORM_CMD -var=\"acme_account_email=$acme_account_email\""
+fi
+
+if [ -n "$cloudflare_api_token" ]; then
+    TERRAFORM_CMD="$TERRAFORM_CMD -var=\"cloudflare_api_token=$cloudflare_api_token\""
 fi
 
 # Add the remaining arguments

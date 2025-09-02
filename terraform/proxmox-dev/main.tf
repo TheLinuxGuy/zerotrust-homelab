@@ -3,6 +3,8 @@ data "proxmox_virtual_environment_vms" "existing_vms" {
   node_name = var.proxmox_node
 }
 
+data "proxmox_virtual_environment_containers" "existing_containers" {}
+
 # OS template and type mapping
 locals {
   os_templates = {
@@ -51,7 +53,9 @@ locals {
 
   # Calculate next available VM ID (starting from 200 to avoid conflicts)
   existing_vm_ids = [for vm in data.proxmox_virtual_environment_vms.existing_vms.vms : vm.vm_id]
-  max_vm_id       = length(local.existing_vm_ids) > 0 ? max(local.existing_vm_ids...) : 99
+  existing_container_ids = [for c in data.proxmox_virtual_environment_containers.existing_containers.containers : c.vm_id]
+  all_existing_ids = concat(local.existing_vm_ids, local.existing_container_ids)
+  max_vm_id       = length(local.all_existing_ids) > 0 ? max(local.all_existing_ids...) : 99
   base_vm_id      = max(local.max_vm_id + 1, 200)  # Start from 200 to avoid existing containers
 }
 
