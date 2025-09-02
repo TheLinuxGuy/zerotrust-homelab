@@ -1,15 +1,24 @@
 # Terraform Proxmox LXC Container Setup
 
-This Terraform configuration creates 4 secure Ubuntu LXC containers on Proxmox with automatic SSH key authentication, random password generation, and comprehensive security features.
+This Terraform configuration creates secure LXC containers on Proxmox with support for multiple operating systems, automatic SSH key authentication, random password generation, and comprehensive security features.
+
+## ✨ New Features
+
+- **Multi-OS Support**: Ubuntu, AlmaLinux, Fedora, and Rocky Linux
+- **Flexible Configuration**: Simple mode for quick setup or advanced mode for detailed customization
+- **Per-Container Customization**: Individual hostnames, resources, network settings, and VLANs
+- **Backward Compatibility**: Existing simple configurations continue to work
 
 ## 🚀 Features
 
-- **4 Ubuntu LXC Containers** with automatic VM ID assignment
+- **Multi-OS LXC Containers** with automatic VM ID assignment
 - **SSH Key Authentication** with provided public keys
 - **Secure Random Passwords** (16 characters, displayed during apply)
 - **Dual Environment Support** (Local development + Semaphore UI CI/CD)
 - **Automatic Resource Management** with Terraform
 - **Production-Ready Security** baseline
+- **Flexible Configuration** (Simple or Advanced mode)
+- **Per-Container Customization** (hostname, resources, network)
 
 ## 📋 Prerequisites
 
@@ -91,9 +100,9 @@ In your Semaphore UI variable group, create these environment variables:
 | `TF_VAR_proxmox_api_token_id` | `terraform@pam!terraform-token` |
 | `TF_VAR_proxmox_api_token_secret` | `your-api-token-secret` |
 
-### Important: TF_VAR_ Prefix Required
+### Important: TF_VAR_ Prefix Required inside Semaphore UI Variable groups.
 
-**Semaphore UI automatically adds the `TF_VAR_` prefix to environment variables.** When you create variables in Semaphore UI's variable groups, the system will automatically prepend `TF_VAR_` when the pipeline runs.
+**Semaphore UI requires you to prefix `TF_VAR_` to variables if you wish to use them in terraform executions within Semaphore UI.**
 
 This means:
 - In Semaphore UI, you define: `proxmox_endpoint`
@@ -148,13 +157,76 @@ terraform/proxmox-dev/
 - **OS**: Ubuntu 25.04
 - **Storage**: local-zfs
 
-### Customization
-Edit `terraform.tfvars` to modify:
-- `container_count`: Number of containers (default: 4)
-- `container_cores`: CPU cores per container
-- `container_memory`: Memory allocation
-- `container_disk_size`: Disk size
-- `network_bridge`: Network bridge
+### Two Configuration Modes
+
+#### Simple Mode (Backward Compatible)
+For basic setups with uniform configuration:
+
+```hcl
+# terraform.tfvars
+container_count = 4
+os_type = "ubuntu-25.04"
+container_cores = 2
+container_memory = 2048
+container_disk_size = 20
+```
+
+This creates 4 Ubuntu containers with auto-generated hostnames: `ubuntu-25.04-lxc-01`, `ubuntu-25.04-lxc-02`, etc.
+
+#### Advanced Mode (Per-Container Customization)
+For detailed, per-container configuration:
+
+```hcl
+# terraform.tfvars
+containers = [
+  {
+    os_type = "ubuntu-25.04"
+    hostname = "web-server"
+    cores = 2
+    memory = 2048
+    disk_size = 20
+    ipv4_address = "192.168.1.10/24"
+    vlan_tag = 10
+  },
+  {
+    os_type = "almalinux-9"
+    hostname = "db-server"
+    cores = 4
+    memory = 4096
+    disk_size = 50
+  },
+  {
+    os_type = "fedora-42"
+    cores = 1
+    memory = 1024
+  },
+  {
+    os_type = "rockylinux-9"
+    hostname = "monitoring"
+    cores = 2
+    memory = 2048
+    ipv4_address = "192.168.1.15/24"
+  }
+]
+```
+
+**Note**: When `containers` is defined, simple mode variables are ignored.
+
+### Supported Operating Systems
+- `ubuntu-25.04`
+- `almalinux-9`
+- `fedora-42`
+- `rockylinux-9`
+
+### Per-Container Options
+- `os_type`: Operating system (required)
+- `hostname`: Custom hostname (auto-generated if not specified)
+- `cores`: CPU cores (default: 2)
+- `memory`: Memory in MB (default: 2048)
+- `disk_size`: Disk size in GB (default: 20)
+- `ipv4_address`: Static IPv4 with CIDR (DHCP if empty)
+- `ipv6_address`: Static IPv6 with CIDR (DHCP if empty)
+- `vlan_tag`: VLAN tag number (optional)
 
 ## 📊 Outputs
 

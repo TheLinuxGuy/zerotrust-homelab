@@ -22,25 +22,66 @@ variable "proxmox_node" {
 }
 
 variable "container_count" {
-  description = "Number of LXC containers to create"
+  description = "Number of LXC containers to create (used in simple mode)"
   type        = number
   default     = 4
 }
 
+variable "os_type" {
+  description = "Operating system type for simple mode (ubuntu-25.04, almalinux-9, fedora-42, rockylinux-9)"
+  type        = string
+  default     = "ubuntu-25.04"
+  validation {
+    condition = contains([
+      "ubuntu-25.04",
+      "almalinux-9",
+      "fedora-42",
+      "rockylinux-9"
+    ], var.os_type)
+    error_message = "OS type must be one of: ubuntu-25.04, almalinux-9, fedora-42, rockylinux-9"
+  }
+}
+
+variable "containers" {
+  description = "Advanced container configuration (leave empty for simple mode)"
+  type = list(object({
+    os_type       = optional(string, "ubuntu-25.04")
+    hostname      = optional(string)
+    cores         = optional(number, 2)
+    memory        = optional(number, 2048)
+    disk_size     = optional(number, 20)
+    ipv4_address  = optional(string, "")
+    ipv6_address  = optional(string, "")
+    vlan_tag      = optional(number)
+  }))
+  default = []
+  validation {
+    condition = alltrue([
+      for container in var.containers : contains([
+        "ubuntu-25.04",
+        "almalinux-9",
+        "fedora-42",
+        "rockylinux-9"
+      ], container.os_type)
+    ])
+    error_message = "Each container's os_type must be one of: ubuntu-25.04, almalinux-9, fedora-42, rockylinux-9"
+  }
+}
+
 variable "container_cores" {
-  description = "Number of CPU cores per container"
+  description = "Number of CPU cores per container (simple mode)"
   type        = number
   default     = 2
 }
 
 variable "container_memory" {
-  description = "Memory in MB per container"
+  description = "Memory in MB per container (simple mode)"
   type        = number
   default     = 2048
 }
 
 variable "container_disk_size" {
-  description = "Disk size for containers in GB"
+  description = "Disk size for containers in GB (simple mode)"
   type        = number
   default     = 20
 }
@@ -52,7 +93,7 @@ variable "storage_pool" {
 }
 
 variable "template_name" {
-  description = "LXC template name"
+  description = "LXC template name (deprecated - use os_type instead)"
   type        = string
   default     = "local:vztmpl/ubuntu-25.04-standard_25.04-1.1_amd64.tar.zst"
 }
