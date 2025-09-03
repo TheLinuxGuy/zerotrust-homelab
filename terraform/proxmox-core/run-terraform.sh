@@ -29,6 +29,16 @@ if [ -z "$proxmox_endpoint" ]; then
     exit 1
 fi
 
+if [ -z "$proxmox_api_token_id" ]; then
+    echo "❌ Error: proxmox_api_token_id not set in .env"
+    exit 1
+fi
+
+if [ -z "$proxmox_api_token_secret" ]; then
+    echo "❌ Error: proxmox_api_token_secret not set in .env"
+    exit 1
+fi
+
 if [ -z "$acme_account_email" ]; then
     echo "❌ Error: acme_account_email not set in .env"
     exit 1
@@ -58,12 +68,24 @@ if [ -n "$proxmox_endpoint" ]; then
 fi
 
 
+if [ -n "$proxmox_api_token_id" ]; then
+    TERRAFORM_CMD="$TERRAFORM_CMD -var=\"proxmox_api_token_id=$proxmox_api_token_id\""
+fi
+
+if [ -n "$proxmox_api_token_secret" ]; then
+    TERRAFORM_CMD="$TERRAFORM_CMD -var=\"proxmox_api_token_secret=$proxmox_api_token_secret\""
+fi
+
 if [ -n "$acme_account_email" ]; then
     TERRAFORM_CMD="$TERRAFORM_CMD -var=\"acme_account_email=$acme_account_email\""
 fi
 
 if [ -n "$cloudflare_api_token" ]; then
     TERRAFORM_CMD="$TERRAFORM_CMD -var=\"cloudflare_api_token=$cloudflare_api_token\""
+fi
+
+if [ -n "$cloudflare_zone_id" ]; then
+    TERRAFORM_CMD="$TERRAFORM_CMD -var=\"cloudflare_zone_id=$cloudflare_zone_id\""
 fi
 
 if [ -n "$proxmox_root_password" ]; then
