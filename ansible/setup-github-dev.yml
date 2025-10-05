@@ -1,0 +1,85 @@
+---
+- name: Configure Git and GitHub SSH access on Debian as root
+  hosts: all
+  remote_user: root
+  vars:
+    # Define your private key here (ensure this is securely stored, e.g., in Ansible Vault)
+    github_private_key: "{{ lookup('env', 'SEMAPHORE_SSHKEY_SECRET') }}"
+    git_user_name: "{{ lookup('env', 'GIT_USER_NAME') }}"
+    git_user_email: "{{ lookup('env', 'GIT_USER_EMAIL') }}"
+
+    ssh_config_entry: |
+      Host github.com
+        HostName github.com
+        User git
+        IdentityFile /root/.ssh/root_semaphoreui
+
+  tasks:
+    - name: Ensure git is installed
+      apt:
+        name: git
+        state: present
+        update_cache: yes
+
+    - name: Configure Git global user name
+      command: git config --global user.name "{{ git_user_name }}"
+
+    - name: Configure Git global user email
+      command: git config --global user.email "{{ git_user_email }}"
+
+    - name: Create /root/.ssh directory
+      file:
+        path: /root/.ssh
+        state: directory
+        mode: '0700'
+        owner: root
+        group: root
+
+    - name: Check GitHub SSH authentication
+      command: ssh -T -o StrictHostKeyChecking=no git@github.com
+      register: ssh_test
+      changed_when: false
+      ignore_errors: true
+
+    - name: Determine if initial SSH test succeeded
+      set_fact:
+        ssh_ok: "{{ ssh_test.stdout is search('TheLinuxGuy') }}"
+
+    - name: Configure SSH key and config if authentication failed
+      block:
+        - name: Deploy private key file
+          copy:
+            content: "{{ github_private_key }}"
+            dest: /root/.ssh/root_semaphoreui
+            mode: '0600'
+            owner: root
+            group: root
+
+        - name: Deploy SSH config for GitHub
+          blockinfile:
+            path: /root/.ssh/config
+            create: yes
+            block: "{{ ssh_config_entry }}"
+            owner: root
+            group: root
+            mode: '0644'
+
+        - name: Retry GitHub SSH authentication
+          command: ssh -T -o StrictHostKeyChecking=no git@github.com
+          register: ssh_retest
+          changed_when: false
+          failed_when: ssh_retest.stdout is not search('TheLinuxGuy')
+
+        - name: Assert GitHub authentication succeeded after configuration
+          assert:
+            that:
+              - ssh_retest.stdout is search('TheLinuxGuy')
+            fail_msg: "GitHub SSH authentication still failed after configuration"
+      when: not ssh_ok
+
+    - name: Confirm GitHub SSH authentication is valid
+      assert:
+        that:
+          - ssh_ok or ssh_retest.stdout is search('TheLinuxGuy')
+        success_msg: "GitHub SSH authentication verified successfully"
+        fail_msg: "GitHub SSH authentication failed"
