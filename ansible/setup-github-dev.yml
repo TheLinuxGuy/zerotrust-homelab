@@ -48,12 +48,12 @@
     - name: Configure SSH key and config if authentication failed
       block:
         - name: Deploy private key file
-          copy:
-            content: "{{ github_private_key }}"
-            dest: /root/.ssh/root_semaphoreui
-            mode: '0600'
-            owner: root
-            group: root
+            copy:
+              content: "{{ github_private_key | replace('\\n', '\n') }}"
+              dest: /root/.ssh/root_semaphoreui
+              mode: '0600'
+              owner: root
+              group: root
 
         - name: Deploy SSH config for GitHub
           blockinfile:
