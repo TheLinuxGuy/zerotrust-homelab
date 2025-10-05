@@ -3,7 +3,7 @@
   hosts: all
   remote_user: root
   vars:
-    # Define your private key here (ensure this is securely stored, e.g., in Ansible Vault)
+    # Only the base64/private key body (no header/footer) stored in semaphore UI secret but we wrap it on the task.
     github_private_key: "{{ lookup('env', 'SEMAPHORE_SSHKEY_SECRET') }}"
     git_user_name: "{{ lookup('env', 'GIT_USER_NAME') }}"
     git_user_email: "{{ lookup('env', 'GIT_USER_EMAIL') }}"
@@ -47,13 +47,16 @@
 
     - name: Configure SSH key and config if authentication failed
       block:
-        - name: Deploy private key file
-            copy:
-              content: "{{ github_private_key | replace('\\n', '\n') }}"
-              dest: /root/.ssh/root_semaphoreui
-              mode: '0600'
-              owner: root
-              group: root
+        - name: Deploy private key file with header and footer
+                  copy:
+                    dest: /root/.ssh/root_semaphoreui
+                    mode: '0600'
+                    owner: root
+                    group: root
+                    content: |
+                      -----BEGIN OPENSSH PRIVATE KEY-----
+                      {{ github_private_key_body }}
+                      -----END OPENSSH PRIVATE KEY-----
 
         - name: Deploy SSH config for GitHub
           blockinfile:
