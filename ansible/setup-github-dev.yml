@@ -48,15 +48,15 @@
     - name: Configure SSH key and config if authentication failed
       block:
         - name: Deploy private key file with header and footer
-                  copy:
-                    dest: /root/.ssh/root_semaphoreui
-                    mode: '0600'
-                    owner: root
-                    group: root
-                    content: |
-                      -----BEGIN OPENSSH PRIVATE KEY-----
-                      {{ github_private_key_body }}
-                      -----END OPENSSH PRIVATE KEY-----
+          copy:
+            dest: /root/.ssh/root_semaphoreui
+            mode: '0600'
+            owner: root
+            group: root
+            content: |
+              -----BEGIN OPENSSH PRIVATE KEY-----
+              {{ github_private_key_body }}
+              -----END OPENSSH PRIVATE KEY-----
 
         - name: Deploy SSH config for GitHub
           blockinfile:
