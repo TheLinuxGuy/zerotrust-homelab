@@ -55,7 +55,7 @@
             group: root
             content: |
               -----BEGIN OPENSSH PRIVATE KEY-----
-              {{ github_private_key_body }}
+              {{ github_private_key }}
               -----END OPENSSH PRIVATE KEY-----
 
         - name: Deploy SSH config for GitHub
